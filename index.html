@@ -3,56 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Video.js Player</title>
-    
+    <title>Universal Video Player</title>
+
     <!-- Video.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.3.0/video-js.min.css" rel="stylesheet">
 
     <style>
-        /* Custom Theme */
-        .video-js {
-            width: 100%;
-            max-width: 800px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        body {
+            text-align: center;
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
         }
-        .vjs-big-play-button {
-            background-color: red !important;
-            border-radius: 50%;
+        .video-container {
+            width: 90%;
+            margin: auto;
+            padding-top: 10px;
+        }
+        iframe {
+            width: 100%;
+            height: 360px;
+            border: none;
+            border-radius: 10px;
+        }
+        .custom-controls {
+            margin-top: 15px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            width: 120px;
+        }
+        .play-btn { background: green; color: white; }
+        .pause-btn { background: red; color: white; }
+        .fullscreen-btn { background: blue; color: white; }
+        .download-btn { background: orange; color: white; }
+        .link-input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
         }
     </style>
+
+    <!-- Video.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.3.0/video.min.js"></script>
 </head>
 <body>
 
-    <!-- Video.js Player -->
-    <video id="my-video" class="video-js vjs-default-skin" controls preload="auto" poster="thumbnail.jpg">
-        <!-- MP4 Video -->
-        <source src="video.mp4" type="video/mp4">
+    <h2>Universal Video Player</h2>
+    <input type="text" id="videoLink" class="link-input" placeholder="Paste Video Link Here" value="https://www.youtube.com/watch?v=VIDEO_ID">
+    <button onclick="updateVideo();">Load Video</button>
 
-        <!-- HLS Streaming -->
-        <source src="https://example.com/live/stream.m3u8" type="application/x-mpegURL">
+    <div class="video-container">
+        <video id="my-video" class="video-js vjs-default-skin" preload="auto" width="100%" height="360">
+            <track kind="subtitles" src="subs.vtt" srclang="en" label="English" default>
+        </video>
 
-        <!-- Subtitles -->
-        <track kind="captions" src="subtitles.vtt" srclang="en" label="English" default>
-        
-        Your browser does not support the video tag.
-    </video>
+        <iframe id="custom-iframe" src="" allowfullscreen></iframe>
 
-    <!-- Video.js Script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.3.0/video.min.js"></script>
+        <div class="custom-controls">
+            <button class="play-btn" onclick="player.play();">▶️ Play</button>
+            <button class="pause-btn" onclick="player.pause();">⏸️ Pause</button>
+            <button class="fullscreen-btn" onclick="player.requestFullscreen();">⛶ Full Screen</button>
+            <button class="download-btn" onclick="downloadVideo();">⬇️ Download</button>
+        </div>
+    </div>
 
     <script>
         var player = videojs('my-video', {
-            autoplay: false,   // Set to true for autoplay
-            loop: true,        // Enable looping
-            muted: false,      // Start with sound enabled
-            fluid: true        // Make the player responsive
+            techOrder: ["youtube"],
+            sources: [{ type: "video/youtube", src: "https://www.youtube.com/watch?v=VIDEO_ID" }],
+            controls: false,
+            modestbranding: 1,
+            rel: 0
         });
 
-        // Example: Add a custom event when the video ends
-        player.on('ended', function() {
-            alert("Video has ended!");
-        });
+        function updateVideo() {
+            let videoUrl = document.getElementById("videoLink").value;
+
+            if (videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be")) {
+                player.src({ type: "video/youtube", src: videoUrl });
+                document.getElementById("custom-iframe").src = "";
+            } else if (videoUrl.includes("twitter.com")) {
+                document.getElementById("custom-iframe").src = `https://twitframe.com/show?url=${videoUrl}`;
+                player.src("");
+            } else {
+                player.src({ type: "video/mp4", src: videoUrl });
+                document.getElementById("custom-iframe").src = "";
+            }
+        }
+
+        function downloadVideo() {
+            let currentSrc = player.currentSrc();
+            if (currentSrc.includes("youtube")) {
+                alert("YouTube videos cannot be downloaded directly.");
+            } else {
+                window.open(currentSrc, "_blank");
+            }
+        }
     </script>
 
 </body>
